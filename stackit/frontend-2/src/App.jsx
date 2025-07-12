@@ -1,8 +1,15 @@
+import Landing from "./components/Landing";
+import Login from "./auth/Login";
+import { Routes, Route } from "react-router-dom";
 
-function App()
-{
-  return(
-    <h1 className="text-blue-300">Hello</h1>
+function App() {
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </>
   );
 }
 
