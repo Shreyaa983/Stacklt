@@ -9,9 +9,12 @@ import {
     AdjustmentsVerticalIcon
 } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Landing() {
     const [questions, setQuestions] = useState([]);
+    const navigate = useNavigate();
+    const navigateToQuestion = () => navigate('/question');
 
     // Get questions from the server when the page loads
     useEffect(() => {
@@ -48,7 +51,7 @@ function Landing() {
                     </div>
                     {/* Here we show the questions */}
                     <div className="space-y-6">
-                        <DemoCard />
+                        <DemoCard navigateToQuestion={navigateToQuestion} />
                         {questions.map((q) => (
                             <div key={q.id} className="bg-white rounded-lg shadow p-6 flex flex-row">
                                 {/* Upvote and downvote buttons */}
@@ -63,7 +66,7 @@ function Landing() {
                                         <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-sm font-medium mr-2">4 answers</span>
                                         <span className="flex items-center text-gray-400 text-sm mr-2"><EyeIcon className="h-4 w-4 mr-1" />156</span>
                                     </div>
-                                    <h2 className="text-xl font-semibold mb-1">{q.title}</h2>
+                                    <h2 className="text-xl font-semibold mb-1 hover:text-blue-500 cursor-pointer" onClick={() => navigate('/question/1')}>{q.title}</h2>
                                     <p className="text-gray-600 mb-2">{q.description}</p>
                                     <div className="flex gap-2 mb-2">
                                         <span className="flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs"><TagIcon className="h-4 w-4 mr-1" />React</span>
@@ -125,7 +128,7 @@ function Landing() {
 }
 
 // This is a sample card to show what a question looks like
-function DemoCard() {
+function DemoCard({ navigateToQuestion }) {
     return (
         <div className="bg-white rounded-lg shadow p-6 flex flex-row">
             {/* Upvote and downvote buttons */}
@@ -140,7 +143,7 @@ function DemoCard() {
                     <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-sm font-medium mr-2">4 answers</span>
                     <span className="flex items-center text-gray-400 text-sm mr-2"><EyeIcon className="h-4 w-4 mr-1" />156</span>
                 </div>
-                <h2 className="text-xl font-semibold mb-1 hover:text-blue-500 cursor-pointer">How to implement state management in React with TypeScript?</h2>
+                <h2 onClick={navigateToQuestion} className="text-xl font-semibold mb-1 hover:text-blue-500 cursor-pointer">How to implement state management in React with TypeScript?</h2>
                 <p className="text-gray-600 mb-2">I'm building a medium-sized React application and I'm wondering what the best approach is for state management. Should I use Redux, Zustand, or stick with React's built-in state...</p>
                 <div className="flex gap-2 mb-2">
                     <span className="flex items-center hover:bg-blue-200 bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs"><TagIcon className="h-4 w-4 mr-1" />React</span>
