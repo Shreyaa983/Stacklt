@@ -1,10 +1,11 @@
 import {
   MagnifyingGlassIcon,
   UserCircleIcon,
-  BellIcon,
 } from "@heroicons/react/24/outline";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
+import NotificationBell from "../components/NotificationBell";
+import notificationService from "../services/notificationService";
 
 function Header() {
   const navigate = useNavigate();
@@ -44,7 +45,28 @@ function Header() {
         </button>
         
         <div className="flex items-center gap-6">
-          <BellIcon className="h-6 w-6 text-gray-600 hover:text-blue-500 cursor-pointer" />
+          {/* Test Notification Button - Uncomment to test real-time notifications
+          <button
+            onClick={async () => {
+              console.log('Testing real-time notification...');
+              // Simulate a mention notification
+              window.dispatchEvent(new CustomEvent('new-mention-notification', {
+                detail: {
+                  type: 'mention',
+                  title: 'You were mentioned by @test_user',
+                  message: 'You were mentioned in: "Test Question"',
+                  mentionedBy: 'test_user',
+                  questionTitle: 'Test Question',
+                  questionId: 'test_id'
+                }
+              }));
+            }}
+            className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+          >
+            Test Real-time
+          </button>
+          */}
+          <NotificationBell />
           <UserCircleIcon onClick={navigateToLogin} className="h-6 w-6 text-gray-600 hover:text-blue-500 cursor-pointer" />
         </div>
       </div>

@@ -6,13 +6,16 @@ import {
     ClockIcon,
     TagIcon,
     FunnelIcon,
-    AdjustmentsVerticalIcon
+    AdjustmentsVerticalIcon,
+    ChevronDownIcon
 } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Landing() {
     const [questions, setQuestions] = useState([]);
+    const [filterType, setFilterType] = useState('all');
+    const [showFilterDropdown, setShowFilterDropdown] = useState(false);
     const navigate = useNavigate();
     const navigateToQuestion = () => navigate('/question');
 
@@ -21,6 +24,18 @@ function Landing() {
         fetch("/api/questions")
             .then(res => res.json())
             .then(data => setQuestions(data));
+    }, []);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (!event.target.closest('.filter-dropdown')) {
+                setShowFilterDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     return (
@@ -39,10 +54,49 @@ function Landing() {
                             <button className="px-4 py-2 hover:border-b-2 hover:border-gray-500 text-gray-500 cursor-pointer">My Questions</button>
                         </div>
                         <div className="flex gap-2 mb-4">
-                            <button className="border px-3 py-1 rounded cursor-pointer hover:bg-gray-300 flex items-center gap-1">
-                                <FunnelIcon className="h-5 w-5" />
-                                Filter
-                            </button>
+                            {/* Single Filter Dropdown */}
+                            <div className="relative filter-dropdown">
+                                <button 
+                                    className="border px-3 py-1 rounded cursor-pointer hover:bg-gray-300 flex items-center gap-1"
+                                    onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                                >
+                                    <FunnelIcon className="h-5 w-5" />
+                                    Filter: {filterType === 'all' ? 'All Questions' : filterType === 'answered' ? 'Answered' : 'Unanswered'}
+                                    <ChevronDownIcon className="h-4 w-4" />
+                                </button>
+                                {showFilterDropdown && (
+                                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded shadow-lg z-10 min-w-40">
+                                        <div 
+                                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                                            onClick={() => {
+                                                setFilterType('all');
+                                                setShowFilterDropdown(false);
+                                            }}
+                                        >
+                                            All Questions
+                                        </div>
+                                        <div 
+                                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                                            onClick={() => {
+                                                setFilterType('answered');
+                                                setShowFilterDropdown(false);
+                                            }}
+                                        >
+                                            Answered
+                                        </div>
+                                        <div 
+                                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                                            onClick={() => {
+                                                setFilterType('unanswered');
+                                                setShowFilterDropdown(false);
+                                            }}
+                                        >
+                                            Unanswered
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
                             <button className="border px-3 py-1 rounded cursor-pointer hover:bg-gray-300 flex items-center gap-1">
                                 <AdjustmentsVerticalIcon className="h-5 w-5" />
                                 Sort by: Newest

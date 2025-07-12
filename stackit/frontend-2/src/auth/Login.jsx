@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { BellIcon,UserCircleIcon } from "@heroicons/react/24/outline";
 
 export default function Login() {
   const [showSignUp, setShowSignUp] = useState(false);
@@ -17,6 +18,7 @@ export default function Login() {
   const [signupMessage, setSignupMessage] = useState("");
 
   const navigate = useNavigate();
+  const navigateToHome = () => navigate('/');
 
   // Classes
   const containerClass = "w-[500px] h-[600px] bg-white/90 rounded-3xl shadow-2xl border border-blue-100 overflow-hidden flex relative transition-all duration-700";
@@ -63,6 +65,17 @@ export default function Login() {
   };
 
   return (
+    <div>
+       <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 bg-white">
+        <div className="text-3xl font-bold text-blue-700">StackIt</div>
+        <div className="flex items-center gap-10">
+          <span className="text-xl text-gray-700 cursor-pointer hover:text-gray-800" onClick={navigateToHome}>Home</span>
+          <div className="flex items-center gap-6">
+            <BellIcon className="h-6 w-6 text-gray-600 hover:text-blue-500 cursor-pointer" />
+            <UserCircleIcon className="h-6 w-6 text-gray-600 hover:text-blue-500 cursor-pointer" />
+          </div>
+        </div>
+      </div>
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-bl from-pink-100 to-blue-100 font-[Montserrat]">
       <div className={containerClass}>
         {/* Sign Up Form */}
@@ -118,6 +131,7 @@ export default function Login() {
           .max-w-xs { max-width: 90vw !important; }
         }
       `}</style>
+    </div>
     </div>
   );
 }
