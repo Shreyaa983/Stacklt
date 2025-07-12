@@ -1,19 +1,17 @@
-const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, userType } = req.body;
 
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ msg: 'User not found' });
+    const user = await User.findOne({ email, role: userType }); // <-- check role match too
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found or role mismatch' });
+    }
 
-    console.log("Password from DB:", user.password);
-console.log("Password from request:", password);
-
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: 'Invalid password' });
+    if (user.password !== password) {
+      return res.status(400).json({ msg: 'Invalid password' });
+    }
 
     res.json({
       msg: 'Login successful',
