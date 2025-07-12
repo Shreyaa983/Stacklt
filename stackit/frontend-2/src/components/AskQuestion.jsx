@@ -213,6 +213,63 @@ function AskQuestion() {
           {/* Submit Button */}
           <div>
             <button
+              onClick={async () => {
+                try {
+                  // First, get the current user data
+                  const userId = localStorage.getItem('userId');
+                  if (!userId) {
+                    alert("Please login first!");
+                    return;
+                  }
+
+                  const userResponse = await fetch(`http://localhost:5000/api/auth/user/${userId}`, {
+                    method: "GET",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  });
+
+                  if (!userResponse.ok) {
+                    alert("Failed to get user data. Please login again.");
+                    return;
+                  }
+
+                  const userData = await userResponse.json();
+                  const currentUser = userData.user;
+
+                  // Now submit the question with the current user data
+                  const response = await fetch("http://localhost:5000/api/questions/ask", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      title: title,
+                      description: description,
+                      tags: tags,
+                      mentions: mentions,
+                      userId: currentUser.id,
+                      username: currentUser.username
+                    }),
+                  });
+
+                  const data = await response.json();
+                  console.log("Response from server:", data);
+                  
+                  if (response.ok) {
+                    alert("Question submitted successfully!");
+                    setTitle("");
+                    setDescription("");
+                    setTags([]);
+                    setMentions([]);
+                  } else {
+                    alert("Failed to submit question: " + (data.message || "Unknown error"));
+                  }
+                } catch (error) {
+                  console.error("Error submitting question:", error);
+                  alert("Network error. Please try again.");
+                }
+              }}
               type="submit"
               className="bg-blue-600 text-white px-8 py-2 rounded-lg font-semibold hover:bg-blue-700 border border-blue-700 transition float-right"
             >

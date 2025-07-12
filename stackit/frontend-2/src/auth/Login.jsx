@@ -3,19 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { BellIcon,UserCircleIcon } from "@heroicons/react/24/outline";
 
 export default function Login() {
-  const [showSignUp, setShowSignUp] = useState(false);
-
   // State for login
+  const [loginName, setLoginName] = useState("");
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [loginRole, setLoginRole] = useState("");
   const [loginMessage, setLoginMessage] = useState("");
-
-  // State for signup
-  const [signupName, setSignupName] = useState("");
-  const [signupEmail, setSignupEmail] = useState("");
-  const [signupPassword, setSignupPassword] = useState("");
-  const [signupDropdown, setSignupDropdown] = useState("");
-  const [signupMessage, setSignupMessage] = useState("");
 
   const navigate = useNavigate();
   const navigateToHome = () => navigate('/');
@@ -23,45 +16,59 @@ export default function Login() {
   // Classes
   const containerClass = "w-[500px] h-[600px] bg-white/90 rounded-3xl shadow-2xl border border-blue-100 overflow-hidden flex relative transition-all duration-700";
   const panelClass = "flex flex-col items-center justify-center h-full px-8 text-center w-full";
-  // const btnOutline = "border border-white text-white text-sm font-semibold py-2 px-12 rounded-lg uppercase tracking-wider hover:bg-white hover:text-blue-700 transition-all duration-200 mt-6";
-
-  // Overlay animation logic
-  // const overlayClass = `absolute top-0 left-0 w-1/2 h-full transition-all duration-700 z-20
-  //   ${showSignUp ? 'translate-x-full' : 'translate-x-0'}
-  //   bg-gradient-to-r from-blue-600 to-purple-500 text-white flex items-center justify-center`;
 
   // Handle login submit
-  // const handleLogin = (e) => {
-  //   e.preventDefault();
-  //   setLoginMessage("");
-    
-  //   // Simple frontend validation
-  //   if (!loginEmail || !loginPassword) {
-  //     setLoginMessage("Please fill in all fields");
-  //     return;
-  //   }
-    
-  //   // Simulate successful login
-  //   setLoginMessage("Login successful!");
-  //   setTimeout(() => {
-  //     navigate("/");
-  //   }, 1000);
-  // };
-
-  // Handle signup submit
-  const handleSignup = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setSignupMessage("");
+    setLoginMessage("");
     
     // Simple frontend validation
-    if (!signupName || !signupEmail || !signupPassword || !signupDropdown) {
-      setSignupMessage("Please fill in all fields");
+    if (!loginName || !loginEmail || !loginPassword || !loginRole) {
+      setLoginMessage("Please fill in all fields");
       return;
     }
     
-    // Simulate successful registration
-    setSignupMessage("Registration successful! You can now sign in.");
-    setShowSignUp(false);
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: loginName,
+          email: loginEmail,
+          password: loginPassword,
+          userType: loginRole
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLoginMessage("Login successful!");
+        
+        // Store user data in localStorage
+        if (data.user) {
+          localStorage.setItem('userId', data.user.id);
+          localStorage.setItem('username', data.user.username);
+          localStorage.setItem('userEmail', data.user.email);
+          localStorage.setItem('userRole', data.user.role);
+        }
+        
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
+        
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
+      } else {
+        const errorData = await response.json();
+        setLoginMessage(errorData.msg || "Login failed");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setLoginMessage("Network error. Please try again.");
+    }
   };
 
   return (
@@ -78,36 +85,36 @@ export default function Login() {
       </div>
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-bl from-pink-100 to-blue-100 font-[Montserrat]">
       <div className={containerClass}>
-        {/* Sign Up Form */}
+        {/* Login Form */}
         <div className={panelClass}>
-          <form className="w-full max-w-xs" onSubmit={handleSignup}>
+          <form className="w-full max-w-xs" onSubmit={handleLogin}>
             <h1 className="text-3xl font-bold text-blue-800 mb-6">Login</h1>
             <input 
               name="name" 
               type="text" 
               placeholder="Name" 
-              value={signupName} 
-              onChange={e => setSignupName(e.target.value)} 
+              value={loginName} 
+              onChange={e => setLoginName(e.target.value)} 
               className="bg-gray-100 outline-none text-base py-3 px-4 rounded-lg w-full my-3 border border-blue-100 focus:ring-2 focus:ring-blue-300" 
             />
             <input 
               name="email" 
               type="email" 
               placeholder="Email" 
-              value={signupEmail} 
-              onChange={e => setSignupEmail(e.target.value)} 
+              value={loginEmail} 
+              onChange={e => setLoginEmail(e.target.value)} 
               className="bg-gray-100 outline-none text-base py-3 px-4 rounded-lg w-full my-3 border border-blue-100 focus:ring-2 focus:ring-blue-300" 
             />
             <input 
               type="password" 
               placeholder="Password" 
-              value={signupPassword} 
-              onChange={e => setSignupPassword(e.target.value)} 
+              value={loginPassword} 
+              onChange={e => setLoginPassword(e.target.value)} 
               className="bg-gray-100 outline-none text-base py-3 px-4 rounded-lg w-full my-3 border border-blue-100 focus:ring-2 focus:ring-blue-300" 
             />
             <select 
-              value={signupDropdown} 
-              onChange={e => setSignupDropdown(e.target.value)} 
+              value={loginRole} 
+              onChange={e => setLoginRole(e.target.value)} 
               className="bg-gray-100 outline-none text-base py-3 px-4 rounded-lg w-full my-3 border border-blue-100 focus:ring-2 focus:ring-blue-300"
             >
               <option value="">Select your Role</option>
@@ -115,12 +122,12 @@ export default function Login() {
               <option value="admin">Admin</option>
             </select>
             <button 
-              type="submit" 
+              type="submit"
               className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold py-3 px-12 rounded-lg uppercase tracking-wider shadow-md transition-all duration-200 mt-6 w-full cursor-pointer"
             >
               Login
             </button>
-            {signupMessage && <div className="mt-4 text-sm text-red-500">{signupMessage}</div>}
+            {loginMessage && <div className="mt-4 text-sm text-red-500">{loginMessage}</div>}
           </form>
         </div>
       </div>

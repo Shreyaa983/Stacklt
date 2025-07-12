@@ -1,4 +1,5 @@
 const Question = require("../models/Question");
+const Answer = require("../models/Answer");
 
 const askQuestion = async (req, res) => {
   try {
@@ -41,12 +42,119 @@ const getAllQuestions = async (req, res) => {
         description: 1,
         tags: 1,
         "author.username": 1,
+        createdAt: 1,
+        upvotes: 1,
       }
+    );
+
+    // Get answer counts for each question
+    const questionsWithAnswerCounts = await Promise.all(
+      questions.map(async (question) => {
+        const answerCount = await Answer.countDocuments({ questionId: question._id });
+        return {
+          ...question.toObject(),
+          answerCount: answerCount
+        };
+      })
     );
 
     res.status(200).json({
       msg: "Questions fetched successfully",
-      data: questions,
+      data: questionsWithAnswerCounts,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error", error: err.message });
+  }
+};
+
+const getNewestQuestions = async (req, res) => {
+  try {
+    // Find all questions sorted by creation date (newest first)
+    const questions = await Question.find(
+      {},
+      {
+        title: 1,
+        description: 1,
+        tags: 1,
+        "author.username": 1,
+        createdAt: 1,
+        upvotes: 1,
+      }
+    ).sort({ createdAt: -1 }); // -1 for descending order (newest first)
+
+    // Get answer counts for each question
+    const questionsWithAnswerCounts = await Promise.all(
+      questions.map(async (question) => {
+        const answerCount = await Answer.countDocuments({ questionId: question._id });
+        return {
+          ...question.toObject(),
+          answerCount: answerCount
+        };
+      })
+    );
+
+    res.status(200).json({
+      msg: "Newest questions fetched successfully",
+      data: questionsWithAnswerCounts,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error", error: err.message });
+  }
+};
+
+const getQuestionById = async (req, res) => {
+  try {
+    const { questionId } = req.params;
+
+    if (!questionId) {
+      return res.status(400).json({ msg: "Question ID is required" });
+    }
+
+    // Find the question
+    const question = await Question.findById(questionId);
+    if (!question) {
+      return res.status(404).json({ msg: "Question not found" });
+    }
+
+    // Find all answers for this question
+    const answers = await Answer.find({ questionId: questionId }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      msg: "Question and answers fetched successfully",
+      data: {
+        question: question,
+        answers: answers
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error", error: err.message });
+  }
+};
+
+const upvoteQuestion = async (req, res) => {
+  try {
+    const { questionId } = req.body;
+
+    if (!questionId) {
+      return res.status(400).json({ msg: "Question ID is required" });
+    }
+
+    const updatedQuestion = await Question.findByIdAndUpdate(
+      questionId,
+      { $inc: { upvotes: 1 } },
+      { new: true }
+    );
+
+    if (!updatedQuestion) {
+      return res.status(404).json({ msg: "Question not found" });
+    }
+
+    res.status(200).json({
+      msg: "Question upvoted successfully",
+      data: updatedQuestion,
     });
   } catch (err) {
     console.error(err);
@@ -57,4 +165,7 @@ const getAllQuestions = async (req, res) => {
 module.exports = {
   askQuestion,
   getAllQuestions,
+  getNewestQuestions,
+  getQuestionById,
+  upvoteQuestion,
 };
