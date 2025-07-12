@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Editor } from '@tinymce/tinymce-react';
+import { useNavigate } from "react-router-dom";
+import { BellIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 // import TagInput from "@pathofdev/react-tag-input";
 // import "@pathofdev/react-tag-input/build/index.css";
 
@@ -8,6 +10,8 @@ function AskQuestion() {
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState([]);
   const editorRef = useRef(null);
+  const navigate = useNavigate();
+    const navigateToHome = () => navigate('/');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -24,6 +28,18 @@ function AskQuestion() {
   };
 
   return (
+    <div>
+      <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 bg-white">
+        <div className="text-3xl font-bold text-blue-700">StackIt</div>
+        <div className="flex items-center gap-10">
+          <span className="text-xl text-gray-700 cursor-pointer hover:text-gray-800" onClick={navigateToHome}>Home</span>
+          <div className="flex items-center gap-6">
+            <BellIcon className="h-6 w-6 text-gray-600 hover:text-blue-500 cursor-pointer" />
+            <UserCircleIcon className="h-6 w-6 text-gray-600 hover:text-blue-500 cursor-pointer" />
+          </div>
+        </div>
+      </div>
+    
     <div className="min-h-screen bg-gray-50 flex justify-center py-10">
       <div className="w-full max-w-2xl bg-white p-8 shadow rounded-lg">
         <h1 className="text-3xl font-bold mb-6 text-blue-700">Ask a Question</h1>
@@ -96,6 +112,7 @@ function AskQuestion() {
           </div>
         </form>
       </div>
+    </div>
     </div>
   );
 }
