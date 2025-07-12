@@ -8,7 +8,8 @@ import { useNavigate } from "react-router-dom";
 
 function Header() {
   const navigate = useNavigate();
-  const navigateToLogin = () => navigate('/login')
+  const navigateToLogin = () => navigate('/login');
+  const navigateToAskQuestion = () => navigate('/AskQuestion');
   return (
     <div className="flex items-center justify-between border-1 border-gray-400 p-5">
       {/* Logo and Navigation */}
@@ -37,7 +38,7 @@ function Header() {
 
       {/* Ask Question Button and Icons */}
       <div className="flex items-center gap-10">
-        <button className="bg-blue-600 cursor-pointer text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+        <button onClick={navigateToAskQuestion} className="bg-blue-600 cursor-pointer text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
           <PlusIcon className="h-5 w-5" />
           Ask Question
         </button>
