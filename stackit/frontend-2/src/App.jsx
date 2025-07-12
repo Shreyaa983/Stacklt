@@ -1,10 +1,14 @@
-import Header from "./navbar/Header";
+import Landing from "./components/Landing";
+import Login from "./auth/Login";
+import { Routes, Route } from "react-router-dom";
 
-function App()
-{
-  return(
+function App() {
+  return (
     <>
-    <Header/>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
     </>
   );
 }
