@@ -4,8 +4,11 @@ import {
   BellIcon,
 } from "@heroicons/react/24/outline";
 import { PlusIcon } from "@heroicons/react/24/solid";
+import { useNavigate } from "react-router-dom";
 
 function Header() {
+  const navigate = useNavigate();
+  const navigateToLogin = () => navigate('/login')
   return (
     <div className="flex items-center justify-between border-1 border-gray-400 p-5">
       {/* Logo and Navigation */}
@@ -41,7 +44,7 @@ function Header() {
         
         <div className="flex items-center gap-6">
           <BellIcon className="h-6 w-6 text-gray-600 hover:text-blue-500 cursor-pointer" />
-          <UserCircleIcon className="h-6 w-6 text-gray-600 hover:text-blue-500 cursor-pointer" />
+          <UserCircleIcon onClick={navigateToLogin} className="h-6 w-6 text-gray-600 hover:text-blue-500 cursor-pointer" />
         </div>
       </div>
     </div>
