@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Editor } from '@tinymce/tinymce-react';
 import { useNavigate } from "react-router-dom";
-import { BellIcon, UserCircleIcon } from "@heroicons/react/24/outline";
+import { UserCircleIcon, BellIcon } from "@heroicons/react/24/outline";
 import notificationService from "../services/notificationService";
+import NotificationBell from "./NotificationBell";
 // import TagInput from "@pathofdev/react-tag-input";
 // import "@pathofdev/react-tag-input/build/index.css";
 
@@ -36,34 +37,46 @@ function AskQuestion() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Title:", title);
-    console.log("Description:", description);
-    console.log("Tags:", tags);
-    console.log("Mentions:", mentions);
-
-    // Show notification for mentions if any
-    if (mentions.length > 0) {
-      console.log('Processing mentions:', mentions);
-      for (const username of mentions) {
-        try {
-          const result = await notificationService.showMentionNotification(
-            'current_user', // Replace with actual current user
-            title,
-            'question_id' // Replace with actual question ID
-          );
-          console.log(`Notification for @${username}:`, result);
-        } catch (error) {
-          console.error(`Failed to show notification for @${username}:`, error);
-        }
-      }
+    const userId = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
+    
+    if (!userId || !username) {
+      alert("Please login to ask a question");
+      return;
     }
 
-    alert("Submitted (Rich Editor)");
+    if (!title.trim() || !description.trim()) {
+      alert("Please fill in all required fields");
+      return;
+    }
 
-    setTitle("");
-    setDescription("");
-    setTags([]);
-    setMentions([]);
+    try {
+      const response = await fetch("http://localhost:5000/api/questions/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: title,
+          description: description,
+          tags: tags,
+          userId: userId,
+          username: username
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert("Question submitted successfully!");
+        navigate('/'); // Navigate back to home page
+      } else {
+        const errorData = await response.json();
+        alert("Failed to submit question: " + (errorData.msg || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error submitting question:", error);
+      alert("Network error. Please try again.");
+    }
   };
 
   return (
@@ -73,7 +86,7 @@ function AskQuestion() {
         <div className="flex items-center gap-10">
           <span className="text-xl text-gray-700 cursor-pointer hover:text-gray-800" onClick={navigateToHome}>Home</span>
           <div className="flex items-center gap-6">
-            <BellIcon className="h-6 w-6 text-gray-600 hover:text-blue-500 cursor-pointer" />
+            <NotificationBell />
             <UserCircleIcon className="h-6 w-6 text-gray-600 hover:text-blue-500 cursor-pointer" />
           </div>
         </div>

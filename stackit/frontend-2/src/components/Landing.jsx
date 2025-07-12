@@ -28,6 +28,8 @@ function Landing() {
             
             if (filter === 'newest') {
                 url = "http://localhost:5000/api/questions/newest";
+            } else if (filter === 'unanswered') {
+                url = "http://localhost:5000/api/questions/unanswered";
             }
             
             const response = await fetch(url);
@@ -82,7 +84,7 @@ function Landing() {
                                     onClick={() => setShowFilterDropdown(!showFilterDropdown)}
                                 >
                                     <FunnelIcon className="h-5 w-5" />
-                                    Filter: {filterType === 'all' ? 'All Questions' : 'Newest'}
+                                    Filter: {filterType === 'all' ? 'All Questions' : filterType === 'newest' ? 'Newest' : 'Unanswered'}
                                     <ChevronDownIcon className="h-4 w-4" />
                                 </button>
                                 {showFilterDropdown && (
@@ -104,6 +106,15 @@ function Landing() {
                                             }}
                                         >
                                             Newest
+                                        </div>
+                                        <div 
+                                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                                            onClick={() => {
+                                                setFilterType('unanswered');
+                                                setShowFilterDropdown(false);
+                                            }}
+                                        >
+                                            Unanswered
                                         </div>
                                     </div>
                                 )}

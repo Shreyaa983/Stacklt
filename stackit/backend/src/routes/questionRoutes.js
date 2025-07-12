@@ -4,6 +4,7 @@ const {
   askQuestion,
   getAllQuestions,
   getNewestQuestions,
+  getUnansweredQuestions,
   getQuestionById,
   upvoteQuestion,
 } = require("../controllers/questionController");
@@ -16,6 +17,9 @@ router.get("/fetch", getAllQuestions);
 
 // Route to get newest questions
 router.get("/newest", getNewestQuestions);
+
+// Route to get unanswered questions
+router.get("/unanswered", getUnansweredQuestions);
 
 // Route to get a specific question by ID
 router.get("/:questionId", getQuestionById);

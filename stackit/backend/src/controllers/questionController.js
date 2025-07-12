@@ -1,8 +1,7 @@
 const Question = require("../models/Question");
 const Answer = require("../models/Answer");
-
 const User = require("../models/User");
-const Notification = require("../models/notification");
+const Notification = require("../models/Notification");
 
 const askQuestion = async (req, res) => {
   try {
@@ -24,34 +23,32 @@ const askQuestion = async (req, res) => {
 
     const savedQuestion = await question.save();
 
+    // Check for mentions in title and description
     const mentionRegex = /@([a-zA-Z0-9_]+)/g;
     const combinedText = `${title} ${description}`;
     const mentionedUsernames = [];
     let match;
+    
     while ((match = mentionRegex.exec(combinedText)) !== null) {
       mentionedUsernames.push(match[1]);
     }
 
-    console.log("Mentioned usernames:", mentionedUsernames);
-
+    // Create notifications for mentioned users
     if (mentionedUsernames.length > 0) {
       const mentionedUsers = await User.find({
-        username: { $in: mentionedUsernames },
+        username: { $in: mentionedUsernames }
       });
-
-      console.log("Found mentioned users:", mentionedUsers);
 
       const notifications = mentionedUsers.map((user) => ({
         userId: user._id,
-        message: `You were mentioned by @${username} in a question.`,
+        message: `You were mentioned by @${username} in a question: "${title}"`,
         questionId: savedQuestion._id,
-        createdAt: new Date(),
+        type: "mention",
         isRead: false,
       }));
 
       if (notifications.length > 0) {
         await Notification.insertMany(notifications);
-        console.log("Notifications inserted:", notifications);
       }
     }
 
@@ -136,6 +133,45 @@ const getNewestQuestions = async (req, res) => {
   }
 };
 
+const getUnansweredQuestions = async (req, res) => {
+  try {
+    // Find all questions
+    const questions = await Question.find(
+      {},
+      {
+        title: 1,
+        description: 1,
+        tags: 1,
+        "author.username": 1,
+        createdAt: 1,
+        upvotes: 1,
+      }
+    );
+
+    // Get answer counts and filter out questions with answers
+    const questionsWithAnswerCounts = await Promise.all(
+      questions.map(async (question) => {
+        const answerCount = await Answer.countDocuments({ questionId: question._id });
+        return {
+          ...question.toObject(),
+          answerCount: answerCount
+        };
+      })
+    );
+
+    // Filter to only include questions with 0 answers
+    const unansweredQuestions = questionsWithAnswerCounts.filter(question => question.answerCount === 0);
+
+    res.status(200).json({
+      msg: "Unanswered questions fetched successfully",
+      data: unansweredQuestions,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error", error: err.message });
+  }
+};
+
 const getQuestionById = async (req, res) => {
   try {
     const { questionId } = req.params;
@@ -198,6 +234,7 @@ module.exports = {
   askQuestion,
   getAllQuestions,
   getNewestQuestions,
+  getUnansweredQuestions,
   getQuestionById,
   upvoteQuestion,
 };
