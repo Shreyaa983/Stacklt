@@ -98,10 +98,26 @@ function QuestionView() {
         {/* Submit Answer */}
         <div className="mt-8">
           <div className="text-gray-900 mb-2 font-semibold">Submit Your Answer</div>
-          <div className="bg-white rounded-lg p-4 mb-2 border border-gray-200">
-            <textarea
-              className="w-full h-28 bg-gray-100 text-gray-900 rounded-lg p-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-              placeholder="Type your answer here..."
+          <div className=" rounded-lg p-4 mb-2 ">
+            <Editor
+              apiKey="pjby16vp5701zsbi2zm097i8oybztv0oyyoo3qpizng4nhyr"
+              onInit={(evt, editor) => editorRef.current = editor}
+              initialValue=""
+              init={{
+                height: 200,
+                menubar: false,
+                branding: false,
+                statusbar: false,
+                plugins: [
+                  'lists', 'advlist', 'autolink', 'emoticons', 'link', 'image'
+                ],
+                toolbar:
+                  'bold italic strikethrough | bullist numlist | alignleft aligncenter alignright | emoticons link image',
+                content_style: 'body { font-family:Inter,sans-serif; font-size:14px }',
+                images_upload_handler: function (blobInfo, success, failure) {
+                  success("data:" + blobInfo.blob().type + ";base64," + blobInfo.base64());
+                },
+              }}
             />
           </div>
           <button className="bg-blue-600 text-white px-8 py-2 rounded-lg font-semibold hover:bg-blue-700 border border-blue-700 float-right">Submit</button>
