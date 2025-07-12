@@ -58,7 +58,26 @@ const upvoteAnswer = async (req, res) => {
   }
 };
 
+const getAllAnswers = async (req, res) => {
+  try {
+    const { questionId } = req.query;
+
+    const filter = questionId ? { questionId } : {};
+
+    const answers = await Answer.find(filter).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      msg: "Answers fetched successfully",
+      data: answers,
+    });
+  } catch (err) {
+    console.error("Error fetching answers:", err);
+    res.status(500).json({ msg: "Server error", error: err.message });
+  }
+};
+
 module.exports = {
   postAnswer,
   upvoteAnswer,
+  getAllAnswers,
 };
