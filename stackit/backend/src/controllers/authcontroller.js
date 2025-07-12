@@ -100,4 +100,24 @@ const getCurrentUser = async (req, res) => {
   }
 };
 
-module.exports = { login, signup, getCurrentUser };
+// Search users by username (for mention autocomplete)
+const searchUsersByUsername = async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!query || query.length < 1) {
+      return res.status(400).json({ msg: 'Query parameter is required' });
+    }
+    // Case-insensitive, partial match
+    const users = await User.find({
+      username: { $regex: query, $options: 'i' }
+    }, 'username email'); // Only return username and email
+    res.status(200).json({
+      msg: 'Users fetched successfully',
+      users
+    });
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+};
+
+module.exports = { login, signup, getCurrentUser, searchUsersByUsername };

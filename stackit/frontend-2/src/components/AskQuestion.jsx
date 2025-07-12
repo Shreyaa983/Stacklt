@@ -13,7 +13,12 @@ function AskQuestion() {
   const [tags, setTags] = useState([]);
   const [mentions, setMentions] = useState([]);
   const [notificationPermission, setNotificationPermission] = useState(false);
+  const [userSuggestions, setUserSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionQuery, setSuggestionQuery] = useState("");
+  const [caretPos, setCaretPos] = useState(0);
   const editorRef = useRef(null);
+  const titleInputRef = useRef(null);
   const navigate = useNavigate();
   const navigateToHome = () => navigate('/');
 
@@ -38,9 +43,8 @@ function AskQuestion() {
     e.preventDefault();
 
     const userId = localStorage.getItem('userId');
-    const username = localStorage.getItem('username');
     
-    if (!userId || !username) {
+    if (!userId) {
       alert("Please login to ask a question");
       return;
     }
@@ -51,6 +55,23 @@ function AskQuestion() {
     }
 
     try {
+      // First, get the current user data
+      const userResponse = await fetch(`http://localhost:5000/api/auth/user/${userId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!userResponse.ok) {
+        alert("Failed to get user data. Please login again.");
+        return;
+      }
+
+      const userData = await userResponse.json();
+      const currentUser = userData.user;
+
+      // Now submit the question with the current user data
       const response = await fetch("http://localhost:5000/api/questions/ask", {
         method: "POST",
         headers: {
@@ -60,22 +81,100 @@ function AskQuestion() {
           title: title,
           description: description,
           tags: tags,
-          userId: userId,
-          username: username
+          mentions: mentions,
+          userId: currentUser.id,
+          username: currentUser.username
         }),
       });
 
+      const data = await response.json();
+      console.log("Response from server:", data);
+      
       if (response.ok) {
-        const data = await response.json();
         alert("Question submitted successfully!");
+        setTitle("");
+        setDescription("");
+        setTags([]);
+        setMentions([]);
         navigate('/'); // Navigate back to home page
       } else {
-        const errorData = await response.json();
-        alert("Failed to submit question: " + (errorData.msg || "Unknown error"));
+        alert("Failed to submit question: " + (data.message || "Unknown error"));
       }
     } catch (error) {
       console.error("Error submitting question:", error);
       alert("Network error. Please try again.");
+    }
+  };
+
+  // Fetch user suggestions from backend
+  const fetchUserSuggestions = async (query) => {
+    if (!query) {
+      setUserSuggestions([]);
+      return;
+    }
+    try {
+      const res = await fetch(`http://localhost:5000/api/auth/search-users?query=${encodeURIComponent(query)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setUserSuggestions(data.users || []);
+      } else {
+        setUserSuggestions([]);
+      }
+    } catch (err) {
+      setUserSuggestions([]);
+    }
+  };
+
+  // Handle title input change and mention detection
+  const handleTitleChange = (e) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+    setCaretPos(e.target.selectionStart);
+
+    // Extract mentions from the title
+    const newMentions = notificationService.getUniqueMentions(newTitle);
+    setMentions(newMentions);
+
+    // Detect if user is typing a mention
+    const cursor = e.target.selectionStart;
+    const textUpToCursor = newTitle.slice(0, cursor);
+    const mentionMatch = textUpToCursor.match(/@([a-zA-Z0-9_]*)$/);
+    if (mentionMatch) {
+      setSuggestionQuery(mentionMatch[1]);
+      fetchUserSuggestions(mentionMatch[1]);
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+      setUserSuggestions([]);
+    }
+  };
+
+  // Handle suggestion click
+  const handleSuggestionClick = (username) => {
+    if (!titleInputRef.current) return;
+    const input = titleInputRef.current;
+    const value = title;
+    const cursor = caretPos;
+    // Find the last @... before the cursor
+    const textUpToCursor = value.slice(0, cursor);
+    const mentionMatch = textUpToCursor.match(/@([a-zA-Z0-9_]*)$/);
+    if (mentionMatch) {
+      const start = textUpToCursor.lastIndexOf('@');
+      const before = value.slice(0, start);
+      const after = value.slice(cursor);
+      const newValue = before + '@' + username + ' ' + after;
+      setTitle(newValue);
+      setShowSuggestions(false);
+      setUserSuggestions([]);
+      setSuggestionQuery("");
+      // Move caret after inserted mention
+      setTimeout(() => {
+        input.focus();
+        input.setSelectionRange(before.length + username.length + 2, before.length + username.length + 2);
+      }, 0);
+      // Update mentions
+      const newMentions = notificationService.getUniqueMentions(newValue);
+      setMentions(newMentions);
     }
   };
 
@@ -114,23 +213,33 @@ function AskQuestion() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title Input */}
-          <div>
+          <div style={{ position: 'relative' }}>
             <label className="block font-medium mb-1 text-gray-700">Title</label>
             <input
               type="text"
               value={title}
-              onChange={(e) => {
-                const newTitle = e.target.value;
-                setTitle(newTitle);
-                
-                // Extract mentions from the title
-                const newMentions = notificationService.getUniqueMentions(newTitle);
-                setMentions(newMentions);
-              }}
+              ref={titleInputRef}
+              onChange={handleTitleChange}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              onFocus={handleTitleChange}
               className="w-full border border-gray-300 px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
               placeholder="Enter your question title (use @username to mention users)"
               required
             />
+            {/* Mention Suggestions Dropdown */}
+            {showSuggestions && userSuggestions.length > 0 && (
+              <ul className="absolute z-10 bg-white border border-gray-300 rounded shadow mt-1 w-full max-h-40 overflow-y-auto">
+                {userSuggestions.map((user, idx) => (
+                  <li
+                    key={user.username}
+                    className="px-4 py-2 cursor-pointer hover:bg-blue-100 text-sm"
+                    onMouseDown={() => handleSuggestionClick(user.username)}
+                  >
+                    @{user.username} <span className="text-gray-400">({user.email})</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Description (Rich Text Editor) */}
@@ -226,63 +335,6 @@ function AskQuestion() {
           {/* Submit Button */}
           <div>
             <button
-              onClick={async () => {
-                try {
-                  // First, get the current user data
-                  const userId = localStorage.getItem('userId');
-                  if (!userId) {
-                    alert("Please login first!");
-                    return;
-                  }
-
-                  const userResponse = await fetch(`http://localhost:5000/api/auth/user/${userId}`, {
-                    method: "GET",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                  });
-
-                  if (!userResponse.ok) {
-                    alert("Failed to get user data. Please login again.");
-                    return;
-                  }
-
-                  const userData = await userResponse.json();
-                  const currentUser = userData.user;
-
-                  // Now submit the question with the current user data
-                  const response = await fetch("http://localhost:5000/api/questions/ask", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      title: title,
-                      description: description,
-                      tags: tags,
-                      mentions: mentions,
-                      userId: currentUser.id,
-                      username: currentUser.username
-                    }),
-                  });
-
-                  const data = await response.json();
-                  console.log("Response from server:", data);
-                  
-                  if (response.ok) {
-                    alert("Question submitted successfully!");
-                    setTitle("");
-                    setDescription("");
-                    setTags([]);
-                    setMentions([]);
-                  } else {
-                    alert("Failed to submit question: " + (data.message || "Unknown error"));
-                  }
-                } catch (error) {
-                  console.error("Error submitting question:", error);
-                  alert("Network error. Please try again.");
-                }
-              }}
               type="submit"
               className="bg-blue-600 text-white px-8 py-2 rounded-lg font-semibold hover:bg-blue-700 border border-blue-700 transition float-right"
             >
