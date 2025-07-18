@@ -1,6 +1,6 @@
 # Stackltt (Hackathon Edition)
 
-Stackltt is a collaborative Q&A platform inspired by Stack Overflow, built as a hackathon project by Saahil and Shreya. The project is currently ongoing and under active development.
+Stackltt is a collaborative Q&A platform inspired by Stack Overflow, built as a hackathon project by my teammates. The project is currently ongoing and under active development.
 
 ## About the Project
 
