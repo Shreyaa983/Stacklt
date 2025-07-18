@@ -23,7 +23,7 @@ This project is ongoing and actively being improved. Contributions and feedback 
 
 ## Screenshot
 
-![Stackltt Screenshot](./electron/assets/stackit.png)
+![Stackltt Screenshot](./stackit/electron/assets/stackit.png)
 
 
 ## 📝 Problem Statement
