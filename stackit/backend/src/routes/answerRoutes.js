@@ -8,4 +8,7 @@ router.post("/post", postAnswer);
 // Upvote an answer
 router.post("/upvote", upvoteAnswer);
 
+// Get answers by question ID
+router.get('/question/:questionId', getAnswersByQuestion);
+
 module.exports = router;

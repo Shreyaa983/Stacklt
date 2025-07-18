@@ -58,7 +58,29 @@ const upvoteAnswer = async (req, res) => {
   }
 };
 
+
+const getAnswersByQuestion = async (req, res) => {
+  try {
+    const { questionId } = req.params;
+
+    if (!questionId) {
+      return res.status(400).json({ msg: "Question ID is required" });
+    }
+
+    const answers = await Answer.find({ questionId });
+
+    res.status(200).json({
+      count: answers.length,
+      data: answers
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error", error: err.message });
+  }
+};
+
 module.exports = {
   postAnswer,
   upvoteAnswer,
+  getAnswersByQuestion
 };

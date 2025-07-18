@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const answerSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true },
+    title: { type: String, required: true, default: "Answer" },
     description: { type: String, required: true },
     upvotes: { type: Number, default: 0 },
     questionId: {

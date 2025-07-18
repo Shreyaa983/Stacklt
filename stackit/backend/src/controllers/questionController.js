@@ -1,4 +1,5 @@
 const Question = require("../models/Question");
+const extractKeywords = require('../helpers/extractKeywords');
 
 const askQuestion = async (req, res) => {
   try {
@@ -18,7 +19,7 @@ const askQuestion = async (req, res) => {
         username: username,
       },
     });
-
+    
     const savedQuestion = await question.save();
 
     res.status(201).json({
@@ -54,7 +55,30 @@ const getAllQuestions = async (req, res) => {
   }
 };
 
+const searchQuestions = async (req, res) => {
+  const { query } = req.body;
+
+  if (!query) {
+    return res.status(400).json({ message: "Query is required" });
+  }
+
+  const keywords = extractKeywords(query);
+
+  try {
+    const results = await Question.find({
+      tags: { $in: keywords }
+    });
+
+    res.json({ count: results.length, data: results });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+
 module.exports = {
   askQuestion,
   getAllQuestions,
+  searchQuestions,
 };
