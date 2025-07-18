@@ -10,7 +10,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/question/" element={<QuestionView />} />
+        <Route path="/question/:questionId" element={<QuestionView />} />
         <Route path="/AskQuestion" element={<AskQuestion />} />
       </Routes>
     </>

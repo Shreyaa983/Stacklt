@@ -2,17 +2,29 @@ const mongoose = require("mongoose");
 
 const answerSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true, default: "Answer" },
-    description: { type: String, required: true },
-    upvotes: { type: Number, default: 0 },
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
     questionId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
       ref: "Question",
+      required: true,
     },
     author: {
-      id: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
-      username: { type: String, required: true },
+      id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      username: String,
+    },
+    upvotes: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }

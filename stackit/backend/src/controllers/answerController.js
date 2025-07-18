@@ -58,23 +58,20 @@ const upvoteAnswer = async (req, res) => {
   }
 };
 
-
-const getAnswersByQuestion = async (req, res) => {
+const getAllAnswers = async (req, res) => {
   try {
-    const { questionId } = req.params;
+    const { questionId } = req.query;
 
-    if (!questionId) {
-      return res.status(400).json({ msg: "Question ID is required" });
-    }
+    const filter = questionId ? { questionId } : {};
 
-    const answers = await Answer.find({ questionId });
+    const answers = await Answer.find(filter).sort({ createdAt: -1 });
 
     res.status(200).json({
-      count: answers.length,
-      data: answers
+      msg: "Answers fetched successfully",
+      data: answers,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching answers:", err);
     res.status(500).json({ msg: "Server error", error: err.message });
   }
 };
@@ -82,5 +79,5 @@ const getAnswersByQuestion = async (req, res) => {
 module.exports = {
   postAnswer,
   upvoteAnswer,
-  getAnswersByQuestion
+  getAllAnswers,
 };
